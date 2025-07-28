@@ -22,7 +22,7 @@ class AggregateRequest(BaseModel):
 
 @app.post("/aggregate")
 async def aggregate_query(
-    payload: AggregateR     equest,
+    payload: AggregateRequest,
     api_key: str = Depends(verify_api_key)
 ):
     pipeline = payload.pipeline
