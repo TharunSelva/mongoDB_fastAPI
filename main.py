@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
+from typing import List, Dict, Any, Union
 from pydantic import BaseModel
-from typing import List, Dict, Any
-from db import db
-from dotenv import load_dotenv
-from schemas import AggregateRequest
 from bson import ObjectId
+import json
 import os
 
-# Load environment variables
+from schemas import AggregateRequest
+from db import db  # Your database client
+from dotenv import load_dotenv
+
 load_dotenv()
 
 app = FastAPI()
@@ -23,7 +24,6 @@ def verify_api_key(api_key: str = Depends(api_key_header)):
     if api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-# Helper function to convert ObjectId to string
 def convert_objectids(obj):
     if isinstance(obj, list):
         return [convert_objectids(item) for item in obj]
@@ -39,15 +39,22 @@ async def aggregate_query(
     payload: AggregateRequest,
     api_key: str = Depends(verify_api_key)
 ):
-    print(payload)
-    pipeline = payload.pipeline
-    collection_name = payload.collection
+    raw_pipeline = payload.pipeline
+
+    # If pipeline items are strings, parse each JSON string to dict
+    if isinstance(raw_pipeline, list) and raw_pipeline and isinstance(raw_pipeline[0], str):
+        try:
+            pipeline = [json.loads(stage) for stage in raw_pipeline]
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid pipeline JSON strings")
+    else:
+        pipeline = raw_pipeline
 
     if not isinstance(pipeline, list):
         raise HTTPException(status_code=400, detail="Pipeline must be a list")
 
     try:
-        collection = db[collection_name]
+        collection = db[payload.collection]
         cursor = collection.aggregate(pipeline)
         results = await cursor.to_list(length=1000)
         results = convert_objectids(results)
