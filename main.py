@@ -39,6 +39,7 @@ async def aggregate_query(
     payload: AggregateRequest,
     api_key: str = Depends(verify_api_key)
 ):
+    print(payload)
     pipeline = payload.pipeline
     collection_name = payload.collection
 
