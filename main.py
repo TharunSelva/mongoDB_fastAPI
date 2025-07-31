@@ -10,6 +10,8 @@ from schemas import AggregateRequest
 from db import db  # Your database client
 from dotenv import load_dotenv
 
+from schema_infer import get_schema_map
+
 # Load environment variables
 load_dotenv()
 
@@ -83,3 +85,8 @@ async def aggregate_query(
         return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# GET request for schema retrieval
+@app.get("/schema")
+def read_schema():
+    return get_schema_map()
