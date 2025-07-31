@@ -8,6 +8,7 @@ dotenv==0.9.9
 fastapi==0.116.1
 h11==0.16.0
 idna==3.10
+mongodb-schema==0.1.2
 motor==3.7.1
 pendulum==3.1.0
 psycopg==3.2.9
